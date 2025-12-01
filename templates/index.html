@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A股选股策略系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-chart-line"></i> A股选股策略系统</h1>
+                <p class="subtitle">双均线多头 + 屡创新高 + 回调 + 站稳5日线策略</p>
+            </div>
+            <div class="header-info">
+                <div class="info-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="current-date">加载中...</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-sync-alt"></i>
+                    <span id="update-time">加载中...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-stock"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-stocks">0</div>
+                        <div class="stat-label">总股票数</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-industry"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-sectors">0</div>
+                        <div class="stat-label">板块数量</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="strong-trend">0</div>
+                        <div class="stat-label">强势趋势</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="sector-filter"><i class="fas fa-filter"></i> 板块筛选</label>
+                    <select id="sector-filter" class="filter-select">
+                        <option value="">全部板块</option>
+                        <!-- 动态填充 -->
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="trend-filter"><i class="fas fa-chart-bar"></i> 趋势强度</label>
+                    <select id="trend-filter" class="filter-select">
+                        <option value="">全部趋势</option>
+                        <option value="强">强势</option>
+                        <option value="弱">弱势</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="search-input"><i class="fas fa-search"></i> 搜索</label>
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="输入股票代码或名称...">
+                        <button id="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="refresh-btn" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> 刷新数据
+                    </button>
+                    <button id="reset-btn" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> 重置筛选
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 股票表格 -->
+        <div class="stocks-table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-list"></i> 选股结果</h2>
+                <div class="table-info">
+                    <span id="filtered-count">0</span> / <span id="total-count">0</span> 只股票
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="stocks-table" id="stocks-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>板块</th>
+                            <th>股票代码</th>
+                            <th>股票名称</th>
+                            <th>最新价</th>
+                            <th>趋势强度</th>
+                            <th>选股理由</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stocks-tbody">
+                        <!-- 动态填充 -->
+                        <tr>
+                            <td colspan="8" class="loading">加载数据中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 策略说明 -->
+        <div class="strategy-info">
+            <h3><i class="fas fa-info-circle"></i> 策略说明</h3>
+            <div class="strategy-content">
+                <div class="strategy-points">
+                    <h4>选股条件：</h4>
+                    <ul>
+                        <li><strong>双均线多头排列</strong>：MA20 > MA60，且股价在MA60之上</li>
+                        <li><strong>屡创新高</strong>：最近20天内创出60日新高</li>
+                        <li><strong>经历回调</strong>：过去5天曾跌破MA5或有3%-20%的合理回撤</li>
+                        <li><strong>站稳5日线</strong>：今日收盘价在MA5之上且收阳线</li>
+                    </ul>
+                </div>
+                <div class="strategy-params">
+                    <h4>策略参数：</h4>
+                    <div id="strategy-params">
+                        <!-- 动态填充 -->
+                    </div>
+                </div>
+            </div>
+            <div class="trading-advice">
+                <h4><i class="fas fa-lightbulb"></i> 交易建议：</h4>
+                <p>1. 等权重买入选中的股票</p>
+                <p>2. 每只股票买入后，记录买入价和最高价</p>
+                <p>3. 当股价从最高点回撤4%时，立即清仓</p>
+                <p>4. 严格控制单只股票仓位（建议不超过总资金的20%）</p>
+                <p class="weekly-advice"><strong>每周调仓建议：</strong> 建议每周一重新运行选股，卖出所有持仓，等权重买入新选出的股票</p>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p><i class="fas fa-exclamation-triangle"></i> 风险提示：股市有风险，投资需谨慎。本策略仅供参考，不构成投资建议。</p>
+            <p class="copyright">© 2023 A股选股策略系统 | 数据来源：akshare | 最后更新：<span id="last-update">-</span></p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app_fixed.js') }}"></script>
+</body>
+</html>
